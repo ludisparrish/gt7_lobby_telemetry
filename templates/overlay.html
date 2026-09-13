@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>GT7 Телеметрия Лиги — OBS Оверлей</title>
+    <style>
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background: transparent; 
+            color: white; 
+            margin: 15px; 
+        }
+        .race-table { 
+            width: 680px; 
+            background: rgba(10, 10, 10, 0.85); 
+            border-collapse: collapse; 
+            border-radius: 6px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+        }
+        .race-header { 
+            background: #e10600; 
+            color: white; 
+            font-weight: bold; 
+            font-size: 13px; 
+            padding: 10px; 
+            text-align: left; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+        }
+        .pilot-row { 
+            border-bottom: 1px solid rgba(255,255,255,0.08); 
+            transition: all 0.2s; 
+        }
+        .td-cell { 
+            padding: 10px 8px; 
+            font-size: 15px; 
+            vertical-align: middle; 
+        }
+        .pos-badge { 
+            background: #333; 
+            padding: 3px 8px; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            min-width: 18px; 
+            display: inline-block; 
+            text-align: center; 
+        }
+        .tyre-grid { 
+            display: grid; 
+            grid-template-columns: 50px 50px; 
+            gap: 4px; 
+            font-size: 11px; 
+            font-weight: bold; 
+            text-align: center; 
+        }
+        .tyre-box { 
+            height: 16px; 
+            border-radius: 2px; 
+            color: black; 
+            line-height: 16px; 
+        }
+        .fuel-bar-bg { 
+            width: 100%; 
+            background: #222; 
+            height: 16px; 
+            border-radius: 3px; 
+            overflow: hidden; 
+            position: relative; 
+        }
+        .fuel-bar-fill { 
+            height: 100%; 
+            background: #ffaa00; 
+            width: 100%; 
+            transition: width 0.3s ease; 
+        }
+        .fuel-text { 
+            position: absolute; 
+            width: 100%; 
+            text-align: center; 
+            font-size: 11px; 
+            font-weight: bold; 
+            line-height: 16px; 
+            color: white; 
+            top: 0; 
+            left: 0; 
+            text-shadow: 1px 1px 2px black; 
+        }
+    </style>
+    <script>
+        async function refreshOverlay() {
+            try {
+                let response = await fetch('/api/data');
+                let pilots = await response.json();
+                let tableBody = document.getElementById('table-body');
+                tableBody.innerHTML = '';
+
+                for (let name in pilots) {
+                    let p = pilots[name];
+                    
+                    // Цвета износа шин (Зеленый -> Желтый -> Красный)
+                    let getCol = (pct) => {
+                        if (pct > 70) return '#00ff00';
+                        if (pct > 30) return '#ffff00';
+                        return '#ff0000';
+                    };
+
+                    let row = `
+                        <tr class="pilot-row">
+                            <td class="td-cell" style="width: 8%; text-align:center;"><span class="pos-badge">${p.position}</span></td>
+                            <td class="td-cell" style="width: 25%; font-weight:bold;">${name}</td>
+                            <td class="td-cell" style="width: 15%; color: #aaa;">Круг ${p.current_lap}</td>
+                            <td class="td-cell" style="width: 20%; font-family: monospace; font-weight: bold;">⏱️ ${p.lap_time}</td>
+                            <td class="td-cell" style="width: 17%;">
+                                <div class="tyre-grid">
+                                    <div class="tyre-box" style="background:${getCol(p.tyre_wear.FL)};">FL:${p.tyre_wear.FL}%</div>
+                                    <div class="tyre-box" style="background:${getCol(p.tyre_wear.FR)};">FR:${p.tyre_wear.FR}%</div>
+                                </div>
+                            </td>
+                            <td class="td-cell" style="width: 15%;">
+                                <div class="fuel-bar-bg">
+                                    <div class="fuel-bar-fill" style="width: ${p.fuel_pct}%;"></div>
+                                    <div class="fuel-text">${p.fuel_pct}%</div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                }
+            } catch (e) { console.error("Ошибка обновления данных", e); }
+        }
+        // Реалтайм-апдейт каждые 500 миллисекунд
+        setInterval(refreshOverlay, 500);
+    </script>
+</head>
+<body>
+    <table class="race-table">
+        <thead>
+            <tr>
+                <th class="race-header" style="text-align:center;">Поз</th>
+                <th class="race-header">Пилот лиги</th>
+                <th class="race-header">Круг</th>
+                <th class="race-header">Время (Last)</th>
+                <th class="race-header">Шины (П)</th>
+                <th class="race-header">Топливо</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            <!-- Строки пилотов влетают сюда автоматически из API -->
+        </tbody>
+    </table>
+</body>
+</html>
