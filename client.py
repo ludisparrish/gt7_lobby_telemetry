@@ -154,7 +154,7 @@ class ClientApp(QWidget):
         layout.addWidget(self.input_ip)
 
         layout.addWidget(QLabel("Адрес сервера трансляции:"))
-        self.input_server = QLineEdit("http://127.0.0.1:8000")
+        self.input_server = QLineEdit("https://lmf-lobby.onrender.com")
         layout.addWidget(self.input_server)
 
         self.btn_action = QPushButton("🏎️ Запустить трансляцию телеметрии")
