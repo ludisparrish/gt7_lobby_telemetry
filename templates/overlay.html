@@ -2,152 +2,235 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>GT7 Телеметрия Лиги — OBS Оверлей</title>
+    <title>SRO GT World Challenge Integrated Delta Overlay</title>
     <style>
-        body { 
-            font-family: 'Arial', sans-serif; 
-            background: transparent; 
-            color: white; 
-            margin: 15px; 
+        body { font-family: 'Arial Black', 'Impact', sans-serif; background: transparent; color: white; margin: 15px; overflow: hidden; }
+        
+        /* Главный вертикальный контейнер оверлея */
+        .ui-wrapper { display: flex; flex-direction: column; gap: 14px; width: 460px; } 
+        
+        /* ТВ-ПЛАШКА КРУГОВ И ТРЕКА */
+        .lap-header-box {
+            display: flex;
+            align-items: center;
+            width: 320px; 
+            height: 28px;
+            background: #111111;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            border-radius: 4px;
+            overflow: hidden;
+            border-bottom: 2px solid #000;
         }
-        .race-table { 
-            width: 680px; 
-            background: rgba(10, 10, 10, 0.85); 
-            border-collapse: collapse; 
+        .lap-header-title {
+            background: #e31e24; 
+            color: white;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            width: 110px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .lap-header-value {
+            font-size: 14px;
+            font-weight: 900;
+            padding-left: 15px;
+            letter-spacing: 1px;
+            color: #ffffff;
+            height: 28px;
+            line-height: 28px;
+        }
+
+        .pilot-row-container { display: flex; align-items: center; height: 34px; width: 100%; }
+        
+        /* ОСНОВНАЯ ПЛАШКА ПИЛОТА (Капсула) */
+        .main-pilot-body { 
+            display: flex; 
+            align-items: center; 
+            width: 320px; 
+            height: 32px; 
+            background: #1a1a1a; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
             border-radius: 6px; 
             overflow: hidden; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+            flex-shrink: 0;
         }
-        .race-header { 
-            background: #e10600; 
+        
+        /* Красный блок позиции */
+        .pos-block { 
+            background: #e31e24; 
+            text-align: center; 
+            width: 50px; 
+            font-size: 16px; 
+            font-weight: 900; 
             color: white; 
-            font-weight: bold; 
-            font-size: 13px; 
-            padding: 10px; 
-            text-align: left; 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
+            height: 32px; 
+            line-height: 32px; 
+            flex-shrink: 0;
         }
-        .pilot-row { 
-            border-bottom: 1px solid rgba(255,255,255,0.08); 
-            transition: all 0.2s; 
+        
+        /* Контейнер имени, дельт и внутренних таймеров */
+        .name-block { 
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            width: 270px;
+            padding: 0 15px; 
+            box-sizing: border-box;
+            height: 32px;
+            line-height: 32px;
         }
-        .td-cell { 
-            padding: 10px 8px; 
-            font-size: 15px; 
-            vertical-align: middle; 
+        .pilot-name { font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px; }
+        
+        /* СТИЛЬ СТАТУСНОГО ТЕКСТА (ТАЙМЕР ИЛИ ДЕЛЬТА) ВНУТРИ ПЛАШКИ ИМЕНИ */
+        .inner-right-text { font-family: monospace; font-size: 14px; font-weight: 900; letter-spacing: 0.5px; height: 32px; line-height: 32px; }
+        .text-mode-pit { color: #ffaa00; background: rgba(0, 0, 0, 0.4); padding: 1px 5px; border-radius: 3px; font-size: 13px; line-height: 18px; } 
+        .text-mode-delta { color: #ff7300; } 
+
+        .spacer-gap { width: 14px; height: 32px; background: transparent; flex-shrink: 0; }
+        
+        /* ПРАВЫЙ НЕЗАВИСИМЫЙ ОСТРОВОК С ЗАКРУГЛЕННЫМИ УГЛАМИ */
+        .right-island-block {
+            width: 110px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 900;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            border-radius: 6px; 
+            flex-shrink: 0;
+            box-sizing: border-box;
+            letter-spacing: 1.5px;
         }
-        .pos-badge { 
-            background: #333; 
-            padding: 3px 8px; 
-            border-radius: 4px; 
-            font-weight: bold; 
-            min-width: 18px; 
-            display: inline-block; 
-            text-align: center; 
-        }
-        .tyre-grid { 
-            display: grid; 
-            grid-template-columns: 50px 50px; 
-            gap: 4px; 
-            font-size: 11px; 
-            font-weight: bold; 
-            text-align: center; 
-        }
-        .tyre-box { 
-            height: 16px; 
-            border-radius: 2px; 
-            color: black; 
-            line-height: 16px; 
-        }
-        .fuel-bar-bg { 
-            width: 100%; 
-            background: #222; 
-            height: 16px; 
-            border-radius: 3px; 
-            overflow: hidden; 
-            position: relative; 
-        }
-        .fuel-bar-fill { 
-            height: 100%; 
-            background: #ffaa00; 
-            width: 100%; 
-            transition: width 0.3s ease; 
-        }
-        .fuel-text { 
-            position: absolute; 
-            width: 100%; 
-            text-align: center; 
-            font-size: 11px; 
-            font-weight: bold; 
-            line-height: 16px; 
-            color: white; 
-            top: 0; 
-            left: 0; 
-            text-shadow: 1px 1px 2px black; 
-        }
+        
+        /* Чистые маркерные цвета островков без лишних цифр */
+        .island-mode-IN_BOX { background: #ebd08d; color: #222222; } 
+        .island-mode-ON_TRACK { background: rgba(85, 255, 85, 0.4); color: #55ff55; border: 1px solid rgba(85, 255, 85, 0.5); } 
+        .island-mode-DELTA { background: #ff7300; color: #000; } 
+
+        /* СИММЕТРИЧНЫЙ НИЖНИЙ БЛОК ЛУЧШЕГО КРУГА */
+        .purple-best-box { display: flex; align-items: center; width: 100%; height: 34px; margin-top: 10px; }
+        .purple-pilot-body { display: flex; justify-content: space-between; align-items: center; width: 320px; height: 32px; background: #222222; border-radius: 6px; padding: 0 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); box-sizing: border-box; flex-shrink: 0; }
+        .blap-name { font-size: 15px; font-weight: 900; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+        .blap-time-container { display: flex; align-items: center; gap: 8px; }
+        .blap-label { color: #888888; font-size: 11px; font-weight: 900; letter-spacing: 0.5px; }
+        .blap-value { font-family: monospace; font-size: 15px; font-weight: 900; color: #ffffff; text-shadow: 0 0 8px rgba(255, 0, 255, 0.8), 0 0 3px rgba(255, 0, 255, 0.5); }
+        .purple-island-marker { background: rgba(255, 0, 255, 0.25); color: #ff00ff; border: 1px solid rgba(255, 0, 255, 0.4); }
     </style>
     <script>
         async function refreshOverlay() {
             try {
-                let response = await fetch('/api/data');
-                let pilots = await response.json();
-                let tableBody = document.getElementById('table-body');
-                tableBody.innerHTML = '';
-
-                for (let name in pilots) {
-                    let p = pilots[name];
-                    
-                    // Цвета износа шин (Зеленый -> Желтый -> Красный)
-                    let getCol = (pct) => {
-                        if (pct > 70) return '#00ff00';
-                        if (pct > 30) return '#ffff00';
-                        return '#ff0000';
-                    };
-
-                    let row = `
-                        <tr class="pilot-row">
-                            <td class="td-cell" style="width: 8%; text-align:center;"><span class="pos-badge">${p.position}</span></td>
-                            <td class="td-cell" style="width: 25%; font-weight:bold;">${name}</td>
-                            <td class="td-cell" style="width: 15%; color: #aaa;">Круг ${p.current_lap}</td>
-                            <td class="td-cell" style="width: 20%; font-family: monospace; font-weight: bold;">⏱️ ${p.lap_time}</td>
-                            <td class="td-cell" style="width: 17%;">
-                                <div class="tyre-grid">
-                                    <div class="tyre-box" style="background:${getCol(p.tyre_wear.FL)};">FL:${p.tyre_wear.FL}%</div>
-                                    <div class="tyre-box" style="background:${getCol(p.tyre_wear.FR)};">FR:${p.tyre_wear.FR}%</div>
-                                </div>
-                            </td>
-                            <td class="td-cell" style="width: 15%;">
-                                <div class="fuel-bar-bg">
-                                    <div class="fuel-bar-fill" style="width: ${p.fuel_pct}%;"></div>
-                                    <div class="fuel-text">${p.fuel_pct}%</div>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += row;
+                let response = await fetch('/api/data'); 
+                let mainData = await response.json();
+                let pilots = mainData.pilots;
+                
+                // РАБОТАЕТ ПО ЛИДЕРУ: Обновляем название трека и круги в реальном времени
+                let trackHeaderTitle = document.getElementById('track-title-text');
+                let lapHeaderValue = document.getElementById('lap-value-text');
+                
+                if (trackHeaderTitle && mainData.track_name) trackHeaderTitle.innerHTML = mainData.track_name;
+                if (lapHeaderValue && mainData.leader_lap && mainData.total_laps) {
+                    lapHeaderValue.innerHTML = 'LAP ' + mainData.leader_lap + ' / ' + mainData.total_laps;
                 }
-            } catch (e) { console.error("Ошибка обновления данных", e); }
+                
+                let mainContainer = document.getElementById('peleton-zone'); 
+                if (!mainContainer) return;
+                let bottomContainer = document.getElementById('bottom-purple-zone');
+                
+                if (!pilots || pilots.length === 0) {
+                    mainContainer.innerHTML = `<div style="padding:15px; background:#1a1a1a; text-align:center; color:#555; font-size:13px; font-weight:900; border-radius:6px; box-shadow:0 4px 10px rgba(0,0,0,0.4);">⏳ ОЖИДАНИЕ ПИЛОТОВ...</div>`; 
+                    if (bottomContainer) bottomContainer.innerHTML = '';
+                    return;
+                }
+                
+                mainContainer.innerHTML = '';
+                pilots.forEach(p => {
+                    let isLeaderStr = p.island_text === "LEADER_ROW";
+                    let rightIslandHtml = '';
+                    let innerTextHtml = '';
+
+                    // =====================================================================
+                    // ЖЕСТКИЙ ФИКС ОШИБКИ ОТОБРАЖЕНИЯ ТВ-МАКЕТА ДЛЯ ЛИДЕРА ГОНКИ
+                    // =====================================================================
+                    if (p.island_mode === "IN_BOX" || p.island_mode === "ON_TRACK") {
+                        // Если пилот на пит-стопе — плашка и таймер включаются в независимости от позиции
+                        rightIslandHtml = '<div class="spacer-gap"></div><div class="right-island-block island-mode-' + p.island_mode + '">' + p.island_text + '</div>';
+                        innerTextHtml = '<span class="inner-right-text text-mode-pit">' + p.inner_timer_text + '</span>';
+                    } 
+                    else if (p.island_mode === "DELTA") {
+                        if (isLeaderStr) {
+                            // ФИКС: Если пилот лидер — правый островок и внутренний текст ПОЛНОСТЬЮ стираются из верстки!
+                            rightIslandHtml = '';
+                            innerTextHtml = '';
+                        } else {
+                            // Для преследователей (P2+) справа парит GAP, а дельта уходит внутрь серого поля
+                            rightIslandHtml = '<div class="spacer-gap"></div><div class="right-island-block island-mode-DELTA">GAP</div>';
+                            innerTextHtml = '<span class="inner-right-text text-mode-delta">' + p.island_text + '</span>';
+                        }
+                    }
+
+                    mainContainer.innerHTML += `
+                        <div class="pilot-row-container">
+                            <div class="main-pilot-body">
+                                <div class="pos-block">${p.position}</div>
+                                <div class="name-block">
+                                    <span class="pilot-name">${p.pilot_name}</span>
+                                    ${innerTextHtml}
+                                </div>
+                            </div>
+                            ${rightIslandHtml}
+                        </div>`;
+                });
+
+                if (mainData.purple_pilot && mainData.purple_lap_time !== "--:--.---") {
+                    bottomContainer.innerHTML = `
+                        <div class="purple-best-box">
+                            <div class="purple-pilot-body">
+                                <span class="blap-name">${mainData.purple_pilot}</span>
+                                <div class="blap-time-container">
+                                    <span class="blap-label">B.LAP</span>
+                                    <span class="blap-value">${mainData.purple_lap_time}</span>
+                                </div>
+                            </div>
+                            <div class="spacer-gap"></div>
+                            <div class="right-island-block purple-island-marker">BEST</div>
+                        </div>`;
+                } else {
+                    bottomContainer.innerHTML = '';
+                }
+
+            } catch (e) {}
         }
-        // Реалтайм-апдейт каждые 500 миллисекунд
-        setInterval(refreshOverlay, 500);
+        setInterval(refreshOverlay, 250); 
     </script>
 </head>
 <body>
-    <table class="race-table">
-        <thead>
-            <tr>
-                <th class="race-header" style="text-align:center;">Поз</th>
-                <th class="race-header">Пилот лиги</th>
-                <th class="race-header">Круг</th>
-                <th class="race-header">Время (Last)</th>
-                <th class="race-header">Шины (П)</th>
-                <th class="race-header">Топливо</th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
-            <!-- Строки пилотов влетают сюда автоматически из API -->
-        </tbody>
-    </table>
+    <div class="ui-wrapper">
+        <div class="lap-header-box">
+            <div class="lap-header-title" id="track-title-text">MONZA</div>
+            <div class="lap-header-value" id="lap-value-text">LAP -- / --</div>
+        </div>
+
+        <!-- Зона динамического пелотона -->
+        <div id="peleton-zone" style="display:flex; flex-direction:column; gap:14px;"></div>
+
+        <div id="bottom-purple-zone"></div>
+    </div>
 </body>
 </html>
+
+
+
+
+
+
+
+
+

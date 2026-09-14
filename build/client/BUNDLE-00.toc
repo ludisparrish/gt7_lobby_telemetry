@@ -1,0 +1,3 @@
+([('client',
+   '/Users/glebludis/Documents/VSCODE/ gt7_telemetry_project/dist/client',
+   'EXECUTABLE')],)
